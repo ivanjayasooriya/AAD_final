@@ -1,0 +1,136 @@
+/* Base Theme Updates */
+body {
+    background-color: #121212;
+    color: #f8f9fa; /* Off-white for general text */
+    padding-bottom: 120px;
+}
+
+/* Updated Header Gradient for Dark Mode */
+.profile-header {
+    background: linear-gradient(to bottom, #1e1e1e, #121212);
+    color: white;
+    padding: 60px 0;
+    margin-bottom: 30px;
+    border-radius: 0 0 30px 30px;
+    border-bottom: 1px solid #333;
+}
+
+.profile-main-img {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border: 6px solid #1e1e1e;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Song Cards for Dark Mode */
+.song-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 12px;
+    transition: 0.2s;
+    cursor: pointer;
+    color: #ffffff;
+}
+
+.song-card:hover {
+    background: #2a2a2a;
+    transform: translateX(10px);
+}
+
+.song-thumb {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Navigation Buttons */
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #f8f9fa;
+    text-decoration: none;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+.back-btn:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.2);
+}
+
+/* Bottom Player Styles */
+#bottomPlayer {
+    background-color: #181818 !important;
+    border-top: 1px solid #333 !important;
+    color: #ffffff;
+}
+
+#bottomPlayer.active { bottom: 0 !important; }
+
+/* Text Overrides */
+#playerTitle { color: #ffffff !important; }
+#playerArtist, #currentTime, .text-muted { color: #b3b3b3 !important; }
+
+.cursor-pointer { cursor: pointer; }
+.text-primary-important { color: #0d6efd !important; }
+
+/* Playlist and Popovers */
+.playlist-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+    color: #f8f9fa;
+    background: #1e1e1e;
+}
+.playlist-item:hover {
+    background-color: #2a2a2a;
+    color: #0d6efd;
+}
+
+.popover {
+    background-color: #1e1e1e !important;
+    border: 1px solid #444 !important;
+}
+.popover-body {
+    padding: 0;
+    height: 200px;
+    overflow-y: auto;
+    width: 200px;
+    background-color: #1e1e1e;
+}
+
+/* Follow Button Style */
+.btn-follow {
+    border-radius: 25px;
+    padding: 8px 30px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+/* Controls */
+#volumeSlider {
+    height: 4px;
+    background: #444;
+}
+#volumeSlider::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+    background: #0d6efd;
+}
+
+.progress {
+    background-color: #333 !important;
+}
+
+/* Icons */
+.bi-shuffle, .bi-skip-start-fill, .bi-skip-end-fill, .bi-volume-up, .bi-heart, .bi-bookmark-plus {
+    color: #ced4da !important;
+}
+
+/* Heart/Liked State */
+.liked { color: #dc3545 !important; }

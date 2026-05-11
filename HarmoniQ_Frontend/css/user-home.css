@@ -1,0 +1,224 @@
+/* Base Theme Updates */
+body {
+    background-color: #121212;
+    color: #f8f9fa; /* Off-white for general text */
+}
+
+/* Overriding Bootstrap Text Colors */
+.text-dark, .text-secondary, .text-muted {
+    color: #b3b3b3 !important; /* Muted light gray */
+}
+
+h1, h2, h3, h4, h5, h6, .fw-bold {
+    color: #ffffff !important;
+}
+
+.cursor-pointer { cursor: pointer; }
+.hover-bg:hover { background-color: #2a2a2a !important; }
+
+/* Music Cards */
+.music-card {
+    border: 1px solid #333;
+    background: #1e1e1e;
+    transition: 0.2s;
+    border-radius: 12px;
+}
+
+#bottomPlayer.active { bottom: 0 !important; }
+
+/* Playlist and Popovers */
+.playlist-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+    color: #f8f9fa;
+}
+.playlist-item:hover {
+    background-color: #2a2a2a;
+    color: #0d6efd !important;
+}
+
+.popover {
+    background-color: #1e1e1e !important;
+    border: 1px solid #444 !important;
+}
+
+.popover-body {
+    padding: 0;
+    height: 200px;
+    overflow-y: auto;
+    width: 200px;
+    background-color: #1e1e1e;
+    color: #f8f9fa;
+}
+
+.text-primary-important { color: #0d6efd !important; }
+.liked { color: #dc3545 !important; }
+
+/* Volume Slider */
+#volumeSlider {
+    height: 4px;
+    background: #444;
+}
+#volumeSlider::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+    background: #0d6efd;
+}
+
+/* Sidebar / Offcanvas */
+.offcanvas {
+    background-color: #181818 !important;
+    color: #f8f9fa !important;
+    border-right: 1px solid #333 !important;
+}
+
+.offcanvas-header {
+    border-bottom: 1px solid #333 !important;
+}
+
+.nav-link {
+    color: #f8f9fa !important;
+}
+
+.nav-link:hover {
+    background-color: #2a2a2a;
+}
+
+/* The Floating Button */
+.chat-launcher {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    font-size: 24px;
+    z-index: 1000;
+}
+
+/* The Chat Window */
+.chat-container {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: #1e1e1e;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
+    border: 1px solid #333;
+}
+
+.chat-header {
+    background: #0d6efd;
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+}
+
+#messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #121212;
+    color: #f8f9fa;
+}
+
+.chat-footer {
+    padding: 15px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+    background: #1e1e1e;
+}
+
+#input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #fff;
+}
+
+/* Artist Items */
+.artist-item {
+    transition: 0.2s;
+    cursor: pointer;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+}
+.artist-item:hover {
+    background: #252525;
+}
+.artist-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #333;
+}
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+
+/* Player Bar */
+#bottomPlayer {
+    background-color: #181818 !important;
+    border-top: 1px solid #333 !important;
+}
+
+#playerTitle {
+    color: #ffffff !important;
+}
+
+#playerArtist {
+    color: #b3b3b3 !important;
+}
+
+#currentTime {
+    color: #b3b3b3 !important;
+}
+
+.progress {
+    background-color: #333 !important;
+}
+
+/* Buttons and Icons */
+.bi-shuffle, .bi-skip-start-fill, .bi-skip-end-fill, .bi-volume-up, .bi-heart, .bi-bookmark-plus {
+    color: #ced4da !important;
+}
+
+.bi-shuffle:hover, .bi-heart:hover {
+    color: #fff !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #121212;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #444;
+}

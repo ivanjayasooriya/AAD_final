@@ -20,6 +20,10 @@ $(document).ready(() => {
         window.location.href = "sign-in.html";
         return;
     }
+
+    if(userRole !== "ADMIN") {
+        checkBanStatus(userId);
+    }
     setupNavbar();
     loadUser();
     loadProfilePhoto();
@@ -71,7 +75,13 @@ function loadUser() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
             logout();
         }
     });
@@ -92,7 +102,14 @@ function updateUser() {
         contentType: "application/json",
         data: JSON.stringify(updateData),
         success: function() {
-            alert("Profile Updated Successfully! Please Sign-In again.");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "Profile Updated Successfully! Please Sign-In again.",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("Profile Updated Successfully! Please Sign-In again.");
             window.location.href = "sign-in.html";
         },
         error: (error) => {
@@ -100,7 +117,13 @@ function updateUser() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -112,7 +135,14 @@ function deleteAccount() {
         type: "DELETE",
         headers: { "Authorization": "Bearer " + token },
         success: function() {
-            alert("Account deleted.");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "Account deleted.",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("Account deleted.");
             logout();
         },
         error: (error) => {
@@ -120,7 +150,13 @@ function deleteAccount() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -170,7 +206,13 @@ function uploadUserProfilePic(file) {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -188,7 +230,13 @@ function getUserEmail() {
     const email = $('#email').val();
 
     if (!email) {
-        alert("Enter email first");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Enter email first",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Enter email first");
         return;
     }
 
@@ -205,7 +253,13 @@ function getUserEmail() {
             }
         },
         error: () => {
-            alert("Session expired. Please login again.");
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Session expired. Please login again.",
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert("Session expired. Please login again.");
             logout();
         }
     });
@@ -215,7 +269,13 @@ function sendOtp() {
     const email = $('#email').val();
 
     if (!email) {
-        alert("Enter email first");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Enter email first",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Enter email first");
         return;
     }
 
@@ -228,12 +288,25 @@ function sendOtp() {
         contentType: "application/json",
         data: JSON.stringify({ email: email }),
         success: function () {
-            alert("OTP sent to your email!");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "OTP sent to your email!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("OTP sent to your email!");
             startOtpTimer();
             otpModal.show();
         },
         error: function () {
-            alert("Failed to send OTP");
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Failed to send OTP. Please try again later.",
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert("Failed to send OTP");
             $('#update-user').prop('disabled', false);
         }
     });
@@ -262,7 +335,13 @@ function verifyOtp() {
     const email = $('#email').val();
 
     if (!otp || !email) {
-        alert("Please enter both OTP and email");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Please enter both OTP and email",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Please enter both OTP and email");
         return false;
     }
 
@@ -281,7 +360,41 @@ function verifyOtp() {
         },
         error: function(error) {
             const msg = error.responseJSON?.message || "OTP validation failed";
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
+        }
+    });
+}
+
+function checkBanStatus(userId) {
+    $.ajax({
+        url: "http://localhost:8080/api/v1/user/ban/check/" + userId,
+        method: 'GET',
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+        success: function (response) {
+            if (response.data === "Banned") {
+                window.location.href = "ban-page.html";
+            }
+        },
+        error: (error) => {
+            let msg = "Request failed"
+            if (error.responseJSON) {
+                msg = error.responseJSON.message || error.responseJSON.data;
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }

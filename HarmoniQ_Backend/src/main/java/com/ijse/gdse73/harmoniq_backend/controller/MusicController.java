@@ -132,7 +132,10 @@ public class MusicController {
         String thumbnailName = new File(music.getThumbnailPath()).getName();
         File thumbnailFile = new File(thumbnailDir + thumbnailName);
         if (thumbnailFile.exists()) {
-            thumbnailFile.delete();
+            boolean isThumbnailDuplicated = musicRepo.findByThumbnailPath(music.getThumbnailPath()) != null;
+            if (!isThumbnailDuplicated) {
+                thumbnailFile.delete();
+            }
         }
 
         return ResponseEntity.ok(new APIResponse(

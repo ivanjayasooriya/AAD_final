@@ -21,6 +21,9 @@ $(document).ready(function() {
         window.location.href = "sign-in.html";
         return;
     }
+
+    checkBanStatus(userId);
+
     activePlaylistId = localStorage.getItem("selectedPlaylistId");
     const initialName = localStorage.getItem("selectedPlaylistName");
     if (!activePlaylistId) { window.location.href = "user-playlists.html"; return; }
@@ -60,7 +63,14 @@ function removeFromCurrentPlaylist() {
         contentType: 'application/json',
         data: JSON.stringify({ playlistId: activePlaylistId, musicId: currentPlayingMusicId }),
         success: function() {
-            alert("Song removed.");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "Song removed successfully!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("Song removed.");
             fetchPlaylistSongs(activePlaylistId, localStorage.getItem("selectedPlaylistName"));
             closePlayer();
         },
@@ -69,7 +79,13 @@ function removeFromCurrentPlaylist() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -139,7 +155,13 @@ function likeSong() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -287,6 +309,34 @@ document.addEventListener("keydown", function(e) {
 function seek(e) {
     const percent = e.offsetX / $(e.target).closest('.progress').width();
     audio.currentTime = percent * audio.duration;
+}
+
+function checkBanStatus(userId) {
+    $.ajax({
+        url: "http://localhost:8080/api/v1/user/ban/check/" + userId,
+        method: 'GET',
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+        success: function (response) {
+            if (response.data === "Banned") {
+                window.location.href = "ban-page.html";
+            }
+        },
+        error: (error) => {
+            let msg = "Request failed"
+            if (error.responseJSON) {
+                msg = error.responseJSON.message || error.responseJSON.data;
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
+        }
+    });
 }
 
 function closePlayer() { audio.pause(); $("#bottomPlayer").removeClass("active"); }

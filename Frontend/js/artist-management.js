@@ -2,6 +2,10 @@ const baseUrl = "http://localhost:8080/api/v1/artist";
 const sidebar = new bootstrap.Offcanvas(document.getElementById('adminSidebar'));
 const placeholderSVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 24 24' fill='none' stroke='%23adb5bd' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E";
 
+const token = localStorage.getItem("token");
+const payload = token ? JSON.parse(atob(token.split('.')[1])) : { id: null, sub: "Guest" };
+const userId = payload.id;
+
 $('#admin-sidebar-sensor').on('mouseenter', () => sidebar.show());
 
 $(document).ready(() => {
@@ -50,7 +54,13 @@ function saveArtist() {
     const bio = $('#artistBio').val();
     const pic = $('#profilePic')[0].files[0];
 
-    if(!name || !bio) return alert("Fill in name and biography.");
+    if(!name || !bio) return Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Fill in name and biography.",
+        footer: "<a href=\"#\">Why do I have this issue?</a>"
+    });
+    // alert("Fill in name and biography.");
 
     let formData = new FormData();
     formData.append("name", name);
@@ -67,18 +77,49 @@ function saveArtist() {
         processData: false,
         contentType: false,
         success: (response) => {
-            alert("Artist added successfully!");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "Artist added successfully!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("Artist added successfully!");
             $('#artistName, #artistBio, #profilePic').val('');
             $('#previewImage').attr('src', placeholderSVG);
             $('#addArtistModal').modal('hide');
             fetchArtists();
+            addAction(userId, `Artist Added - ${name}` );
         },
         error: (error) => {
             let msg = "Add failed"
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
+        }
+    });
+}
+
+function addAction(userId, activity) {
+    $.ajax({
+        url: "http://localhost:8080/api/v1/activity/add",
+        method: "POST",
+        headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
+        contentType: "application/json",
+        data: JSON.stringify(
+            { userId: userId, activity: activity, activityDate: new Date().toISOString() }),
+        success: () => {
+            console.log("Log added successfully");
+        },
+        error: (error) => {
+            console.error("Error adding log:", error);
         }
     });
 }
@@ -110,17 +151,31 @@ function submitUpdate() {
         processData: false,
         contentType: false,
         success: () => {
-            alert("Artist updated successfully!");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "Artist updated successfully!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("Artist updated successfully!");
             bootstrap.Modal.getInstance(document.getElementById('updateArtistModal')).hide();
             $('#updateProfilePic').val('');
             fetchArtists();
+            addAction(userId, `Artist Updated - ${$('#updateArtistName').val()}` );
         },
         error: (error) => {
             let msg = "Update failed"
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -130,15 +185,29 @@ function deleteArtist(id) {
         $.ajax({ url: `${baseUrl}/delete/${id}`, type: "DELETE", headers: {
                 "Authorization": "Bearer " + localStorage.getItem("token") // Is this line here?
             },success: () => {
-                alert("Artist deleted successfully!");
+                Swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: "Artist deleted successfully!",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                // alert("Artist deleted successfully!");
                 fetchArtists()
+                addAction(userId, `Artist Deleted - ${id}` );
             },
             error: (error) => {
                 let msg = "Delete failed"
                 if (error.responseJSON) {
                     msg = error.responseJSON.data || error.responseJSON.message;
                 }
-                alert(msg);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: msg,
+                    footer: "<a href=\"#\">Why do I have this issue?</a>"
+                });
+                // alert(msg);
             }});
     }
 }

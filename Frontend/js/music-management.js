@@ -4,6 +4,10 @@ const genreBaseUrl = "http://localhost:8080/api/v1/genre";
 const sidebar = new bootstrap.Offcanvas(document.getElementById('adminSidebar'));
 const placeholderThumb = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23adb5bd' stroke-width='1'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
 
+const token = localStorage.getItem("token");
+const payload = token ? JSON.parse(atob(token.split('.')[1])) : { id: null, sub: "Guest" };
+const userId = payload.id;
+
 let existingArtists = [];
 let existingGenres = [];
 
@@ -45,33 +49,13 @@ function fetchGenres() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
-        }
-    });
-}
-
-function addGenre() {
-    const name = $('#genreName').val().trim();
-    if (!name) return alert("Please enter a genre name.");
-
-    $.ajax({
-        url: `${genreBaseUrl}/add`,
-        type: "POST",
-        headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
-        contentType: "application/json",
-        data: JSON.stringify({ name: name }),
-        success: () => {
-            alert("Genre added!");
-            $('#genreModal').modal('hide');
-            $('#genreName').val('');
-            fetchGenres(); // Refresh dropdowns
-        },
-        error: (error) => {
-            let msg = "Add genre failed"
-            if (error.responseJSON) {
-                msg = error.responseJSON.data || error.responseJSON.message;
-            }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -99,7 +83,13 @@ function fetchArtists() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            // alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
         }
     });
 }
@@ -131,7 +121,13 @@ function fetchMusic() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -140,8 +136,20 @@ function uploadMusic() {
     const artist = $('#musicArtist').val();
     const genreId = $('#musicGenre').val();
 
-    if (!existingArtists.includes(artist)) return alert("Artist does not exist.");
-    if (!genreId) return alert("Please select a genre.");
+    if (!existingArtists.includes(artist)) return Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Artist does not exist.",
+        footer: "<a href=\"#\">Why do I have this issue?</a>"
+    });
+    // alert("Artist does not exist.");
+    if (!genreId) return Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Please select a genre.",
+        footer: "<a href=\"#\">Why do I have this issue?</a>"
+    });
+    // alert("Please select a genre.");
 
     let formData = new FormData();
     formData.append("musicFile", $('#musicFile')[0].files[0]);
@@ -158,6 +166,7 @@ function uploadMusic() {
         processData: false,
         contentType: false,
         success: () => {
+            addAction(userId, `Music Added - ${$('#musicTitle').val()}`);
             $('#musicTitle').val('');
             $('#musicArtist').val('');
             $('#musicGenre').val('');
@@ -171,7 +180,30 @@ function uploadMusic() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
+        }
+    });
+}
+
+function addAction(userId, activity) {
+    $.ajax({
+        url: "http://localhost:8080/api/v1/activity/add",
+        method: "POST",
+        headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
+        contentType: "application/json",
+        data: JSON.stringify(
+            { userId: userId, activity: activity, activityDate: new Date().toISOString() }),
+        success: () => {
+            console.log("Log added successfully");
+        },
+        error: (error) => {
+            console.error("Error adding log:", error);
         }
     });
 }
@@ -205,13 +237,20 @@ function submitUpdate() {
         success: () => {
             bootstrap.Modal.getInstance(document.getElementById('updateModal')).hide();
             fetchMusic();
+            addAction(userId, `Music Updated - ${$('#updateMusicTitle').val()}`);
         },
         error: (error) => {
             let msg = "Update music failed"
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -222,13 +261,22 @@ function deleteMusic(id) {
             url: `${baseUrl}/delete/${id}`,
             type: "DELETE",
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
-            success: () => fetchMusic(),
+            success: () => {
+                fetchMusic()
+                addAction(userId, `Music Deleted - ${id}`);
+            },
             error: (error) => {
                 let msg = "Delete music failed"
                 if (error.responseJSON) {
                     msg = error.responseJSON.data || error.responseJSON.message;
                 }
-                alert(msg);
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: msg,
+                    footer: "<a href=\"#\">Why do I have this issue?</a>"
+                });
+                // alert(msg);
             }
         });
     }

@@ -37,7 +37,13 @@
 </div>
 
 <div class="container">
-    <h2 class="fw-bold mb-4">User Directory</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">User Directory</h2>
+
+        <a href="banned-users.html" class="btn btn-outline-danger fw-bold">
+            <i class="bi bi-slash-circle me-2"></i> Banned Users
+        </a>
+    </div>
 
     <div class="card border-0 shadow-sm mb-5">
         <div class="card-header bg-white py-3">
@@ -110,7 +116,55 @@
     </div>
 </div>
 
+<div class="modal fade" id="banUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-danger">Ban User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <input type="hidden" id="banUserId">
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Username</label>
+                    <input type="text" id="banUsername" class="form-control bg-light" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Email Address</label>
+                    <input type="text" id="banEmail" class="form-control bg-light" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Ban Duration</label>
+                    <select id="banDuration" class="form-select">
+                        <option value="24h">24 Hours</option>
+                        <option value="7d">7 Days</option>
+                        <option value="30d">30 Days</option>
+                        <option value="1y">1 Year</option>
+                        <option value="permanent">Permanent</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small fw-bold text-muted">Reason (optional)</label>
+                    <textarea id="banReason" class="form-control" rows="2" placeholder="Enter reason..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 p-3">
+                <button class="btn btn-danger w-100 fw-bold" onclick="confirmBanUser()">
+                    Confirm Ban
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script src="js/user-management.js"></script>
 

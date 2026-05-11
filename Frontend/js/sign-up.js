@@ -6,7 +6,13 @@ function sendOtp() {
     const email = $('#email').val();
 
     if (!email) {
-        alert("Enter email first");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Enter email first",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Enter email first");
         return;
     }
 
@@ -20,11 +26,24 @@ function sendOtp() {
         contentType: "application/json",
         data: JSON.stringify({ email: email }),
         success: function () {
-            alert("OTP sent to your email!");
+            Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: "OTP sent to your email!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            // alert("OTP sent to your email!");
             startOtpTimer();
         },
         error: function () {
-            alert("Failed to send OTP");
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "Failed to send OTP",
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert("Failed to send OTP");
             $('#sendOtpBtn').prop('disabled', false);
         }
     });
@@ -53,7 +72,13 @@ function validateOtp() {
     const email = $('#email').val();
 
     if (!otp || !email) {
-        alert("Please enter both OTP and email");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Please enter both OTP and email",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Please enter both OTP and email");
         return false;
     }
 
@@ -71,7 +96,13 @@ function validateOtp() {
         },
         error: function(error) {
             const msg = error.responseJSON?.message || "OTP validation failed";
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -83,7 +114,13 @@ function signUp() {
     const role = "ADMIN";
 
     if (!username || !email || !password) {
-        alert("Please fill all fields");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Please fill all fields",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Please fill all fields");
         return;
     }
 
@@ -100,7 +137,14 @@ function signUp() {
         success: function (response) {
             // Adjusting to check standard success patterns
             if (response.status === 200 || response.status === "SUCCESS") {
-                alert("Registration successful!");
+                Swal.fire({
+                    position: "top-end",
+                    icon: "success",
+                    title: "Registration successful!",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                // alert("Registration successful!");
                 window.location.href = "sign-in.html";
             }
         },
@@ -109,7 +153,13 @@ function signUp() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
             // alert("Add failed")
         }
     });

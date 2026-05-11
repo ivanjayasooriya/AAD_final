@@ -39,7 +39,7 @@ function fetchStats() {
 // Fetch recent activity
 function fetchRecentActivity() {
     $.ajax({
-        url: "http://localhost:8080/api/v1/activity/recent",
+        url: "http://localhost:8080/api/v1/activity/load",
         method: "GET",
         headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
         success: (res) => {
@@ -48,10 +48,10 @@ function fetchRecentActivity() {
                 tbody.append(`
           <tr>
             <td class="ps-3 text-muted">#${a.id}</td>
-            <td>${a.type}</td>
-            <td>${a.item}</td>
-            <td>${a.username}</td>
-            <td class="text-end pe-3">${new Date(a.date).toLocaleString()}</td>
+            <td>${a.userId}</td>
+            <td>${a.activity}</td>
+<!--            <td>${a.activityDate}</td>-->
+            <td class="text-end pe-3">${new Date(a.activityDate).toLocaleString()}</td>
           </tr>
         `);
             });

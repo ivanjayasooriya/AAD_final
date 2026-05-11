@@ -10,5 +10,7 @@ public interface MusicService {
     MusicDTO getMusicById(Long id);
     List<MusicDTO> getAllMusic();
     Music deleteMusic(Long id);
+    boolean checkDuplicateThumbnail(String thumbnailPath);
+
     void updateMusic(MusicDTO musicDTO);
 }

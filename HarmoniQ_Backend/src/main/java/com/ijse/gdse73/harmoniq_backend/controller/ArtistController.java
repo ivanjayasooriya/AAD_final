@@ -132,14 +132,14 @@ public class ArtistController {
     public ResponseEntity<Resource> getProfilePic(@PathVariable Long id) {
 
         try {
-            // 1. Get music metadata
+            //  Get music metadata
             ArtistDTO artistDTO = artistService.findArtist(id);
 
             if (artistDTO == null || artistDTO.getPfpPath() == null) {
                 throw new CustomException("Profile Picture not found");
             }
 
-            // 2. Resolve thumbnail file path
+            //  Resolve thumbnail file path
             String artistProfileName = new File(artistDTO.getPfpPath()).getName();
             Path artistProfilePath = Paths.get(artistDir + artistProfileName);
 
@@ -149,7 +149,7 @@ public class ArtistController {
                 throw new CustomException("Profile Picture not found");
             }
 
-            // 3. Return as image resource
+            //  Return as image resource
             String contentType = Files.probeContentType(artistProfilePath);
             if (contentType == null) {
                 contentType = "image/jpeg"; // default

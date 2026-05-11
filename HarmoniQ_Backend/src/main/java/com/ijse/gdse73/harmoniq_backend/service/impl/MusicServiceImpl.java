@@ -109,6 +109,11 @@ public class MusicServiceImpl implements MusicService {
     }
 
     @Override
+    public boolean checkDuplicateThumbnail(String thumbnailPath) {
+        return musicRepo.findByThumbnailPath(thumbnailPath) != null;
+    }
+
+    @Override
     public void updateMusic(MusicDTO musicDTO) {
         if (musicDTO == null) {
             throw new CustomException("MusicDTO is null");

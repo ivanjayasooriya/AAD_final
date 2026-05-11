@@ -5,7 +5,13 @@ function signIn() {
     const password = $('#password').val();
 
     if (!username || !password) {
-        alert("Please enter both username and password");
+        Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Move…",
+            footer: "<a href=\"#\">Why do I have this issue?</a>"
+        });
+        // alert("Please enter both username and password");
         return;
     }
 
@@ -30,7 +36,7 @@ function signIn() {
                 if (role === "ADMIN") {
                     window.location.href = "admin-dashboard.html";
                 } else if (role === "USER") {
-                    window.location.href = "user-home.html";
+                    checkBanStatus(userId);
                 }
             }
         },
@@ -39,7 +45,44 @@ function signIn() {
             if (error.responseJSON) {
                 msg = error.responseJSON.message || error.responseJSON.data;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
+        }
+    });
+}
+
+function checkBanStatus(userId) {
+    $.ajax({
+        url: "http://localhost:8080/api/v1/user/ban/check/" + userId,
+        method: 'GET',
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+        success: function (response) {
+            if (response.data === "Banned") {
+                window.location.href = "ban-page.html";
+
+            } else {
+                window.location.href = "user-home.html";
+            }
+        },
+        error: (error) => {
+            let msg = "Sign-In failed"
+            if (error.responseJSON) {
+                msg = error.responseJSON.message || error.responseJSON.data;
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }

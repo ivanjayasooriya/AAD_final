@@ -12,6 +12,8 @@ $(document).ready(() => {
         window.location.href = "sign-in.html";
         return;
     }
+
+    checkBanStatus(userId);
     fetchFollowingArtists();
 });
 
@@ -31,7 +33,13 @@ function fetchArtists() {
             if (error.responseJSON) {
                 msg = error.responseJSON.data || error.responseJSON.message;
             }
-            alert(msg);
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
         }
     });
 }
@@ -126,6 +134,34 @@ function viewProfile(artist) {
     localStorage.setItem("selectedArtist", JSON.stringify(artist));
     localStorage.setItem("backLocation", "artists-page.html");
     window.location.href = "artist-profile.html";
+}
+
+function checkBanStatus(userId) {
+    $.ajax({
+        url: "http://localhost:8080/api/v1/user/ban/check/" + userId,
+        method: 'GET',
+        headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+        },
+        success: function (response) {
+            if (response.data === "Banned") {
+                window.location.href = "ban-page.html";
+            }
+        },
+        error: (error) => {
+            let msg = "Request failed"
+            if (error.responseJSON) {
+                msg = error.responseJSON.message || error.responseJSON.data;
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: msg,
+                footer: "<a href=\"#\">Why do I have this issue?</a>"
+            });
+            // alert(msg);
+        }
+    });
 }
 
 function logout() {
