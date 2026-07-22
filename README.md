@@ -1,4 +1,114 @@
-# HarmoniQ Music Streaming Web App
+# ⚡HarmoniQ Music Streaming Web App
+
+![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
+![Java](https://img.shields.io/badge/Language-Java-orange?style=for-the-badge)
+![Spring Boot](https://img.shields.io/badge/Framework-Spring%20Boot-green?style=for-the-badge)
+
+A robust, enterprise-grade RESTful API application developed for the Advanced API Development (AAD) module, demonstrating best practices in clean backend architecture, security, and persistence.
+
+---
+
+## 📑 Table of Contents
+- [About the Project](#about-the-project)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Architecture & Design](#architecture--design)
+- [Getting Started](#getting-started)
+- [Installation & Setup](#installation--setup)
+- [License](#license)
+
+---
+
+## 🧐 About the Project
+
+This repository contains the final project for the **Advanced API Development** module. The application is built to serve as a high-performance backend, providing secure REST endpoints, structured payload handling, and decoupled business logic to support scalable web and mobile applications.
+
+---
+
+## ✨ Key Features
+
+* **🌐 RESTful API Endpoints:** Clean URL design following standard HTTP verbs (GET, POST, PUT, DELETE).
+* **🔐 Security & Authentication:** Secure resource access using industry-standard authentication patterns.
+* **📂 Layered Architecture:** Decoupled Controllers, Services, Repositories, and Data Models.
+* **💾 Persistence:** Relational database integration managed via JPA / Hibernate.
+* **🛡️ Data Validation & Error Handling:** Centralized exception handling with clear HTTP status codes and error payloads.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Language** | Java 17+ |
+| **Framework** | Spring Boot / Spring MVC |
+| **Security** | Spring Security / JWT |
+| **Persistence** | Spring Data JPA / Hibernate |
+| **Database** | MySQL / PostgreSQL |
+| **Build Tool** | Maven / Gradle |
+
+---
+
+## 🏗️ Architecture & Design
+
+  +----------------------------------------+
+  |         API / Controller Layer         |  <-- Exposes REST Endpoints & DTOs
+  +-------------------++-------------------+
+                      ||
+  +-------------------\/-------------------+
+  |        Service / Business Layer        |  <-- Executes core API logic & validations
+  +-------------------++-------------------+
+                      ||
+  +-------------------\/-------------------+
+  |      Repository / Persistence Layer    |  <-- Handles DB CRUD via JPA / ORM
+  +-------------------++-------------------+
+                      ||
+  +-------------------\/-------------------+
+  |         Database / Storage             |  <-- Relational SQL Database
+  +----------------------------------------+
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* **JDK 17+** installed
+* **MySQL Server** (or your preferred SQL database)
+* An IDE such as **IntelliJ IDEA**, **Eclipse**, or **VS Code**
+* **Git** installed on your machine
+
+---
+
+## 📥 Installation & Setup
+
+1. **Clone the Repository:**
+   git clone https://github.com/ivanjayyy/AAD_final.git
+   cd AAD_final
+
+2. **Configure Database:**
+   * Create a database schema in MySQL (e.g., `aad_final_db`).
+   * Update your database credentials in `src/main/resources/application.properties`:
+
+     spring.datasource.url=jdbc:mysql://localhost:3306/aad_final_db
+     spring.datasource.username=YOUR_USERNAME
+     spring.datasource.password=YOUR_PASSWORD
+
+3. **Build & Run:**
+   mvn clean install
+   mvn spring-boot:run
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for details.
+
+---
+
+<p align="center">
+  Developed by <a href="https://github.com/ivanjayyy">Ivan Jayasooriya</a>
+</p>
 
 ## 📸 Screenshots
 - Sign-Up page
