@@ -111,7 +111,7 @@ function signUp() {
     const username = $('#username').val();
     const password = $('#password').val();
     const email = $('#email').val();
-    const role = "ADMIN";
+    const role = "USER";
 
     if (!username || !email || !password) {
         Swal.fire({

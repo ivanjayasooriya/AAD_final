@@ -17,28 +17,25 @@ public class OtpService {
     private final OtpRepo otpRepo;
     private final PasswordEncoder passwordEncoder;
 
-    // OTP validity in seconds
     private static final long OTP_VALIDITY_SECONDS = 60;
 
-    // Generate and save OTP
+    // Generate OTP
     public String generateOtp(String email) {
-        // Generate random 6-digit OTP
         String rawOtp = String.valueOf(100000 + new Random().nextInt(900000));
         String encodedOtp = passwordEncoder.encode(rawOtp);
 
         LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(OTP_VALIDITY_SECONDS);
 
-        // Save or update OTP
         Otp otpEntity = Otp.builder()
                 .email(email)
                 .otp(encodedOtp)
                 .expiryTime(expiryTime)
                 .build();
 
-        otpRepo.deleteByEmail(email); // remove old OTP if exists
+        otpRepo.deleteByEmail(email);
         otpRepo.save(otpEntity);
 
-        return rawOtp; // send raw OTP to user
+        return rawOtp;
     }
 
     // Validate OTP
@@ -53,13 +50,13 @@ public class OtpService {
 
                     // Check match
                     boolean matches = passwordEncoder.matches(otp, otpEntity.getOtp());
-                    if (matches) otpRepo.delete(otpEntity); // remove after successful verification
+                    if (matches) otpRepo.delete(otpEntity);
                     return matches;
                 })
                 .orElse(false);
     }
 
-    @Scheduled(fixedRate = 60000) // 60,000 ms = 1 min
+    @Scheduled(fixedRate = 60000)
     public void removeExpiredOtps() {
         LocalDateTime now = LocalDateTime.now();
         otpRepo.findAll().stream()

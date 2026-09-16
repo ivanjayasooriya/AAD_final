@@ -143,7 +143,6 @@ public class ChatService {
     public String askAI(String msg) {
         String url = "http://localhost:11434/api/generate";
 
-        // Instruction block placed strategically after data
         String prompt = String.format("""
     ### SYSTEM DATABASE
     %s
