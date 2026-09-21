@@ -25,6 +25,12 @@ public class UserProfilePicServiceImpl implements UserProfilePicService {
         );
 
         UserProfilePic userProfilePic = userProfilePicRepo.findByUser(user);
+
+        // Safe null check for users without a profile picture
+        if (userProfilePic == null) {
+            return null;
+        }
+
         UserProfilePicDTO userProfilePicDTO = new UserProfilePicDTO();
         userProfilePicDTO.setUserId(id);
         userProfilePicDTO.setProfilePic(userProfilePic.getPicUrl());
@@ -40,12 +46,11 @@ public class UserProfilePicServiceImpl implements UserProfilePicService {
         UserProfilePic existing = userProfilePicRepo.findByUser(user);
 
         if (existing != null) {
-            // update existing
+            // Update existing record
             existing.setPicUrl(userProfilePicDTO.getProfilePic());
             userProfilePicRepo.save(existing);
-
         } else {
-            // create new
+            // Create new record
             UserProfilePic newPic = UserProfilePic.builder()
                     .user(user)
                     .picUrl(userProfilePicDTO.getProfilePic())

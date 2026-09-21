@@ -2,35 +2,28 @@ package com.ijse.gdse73.harmoniq_backend.controller;
 
 import com.ijse.gdse73.harmoniq_backend.dto.APIResponse;
 import com.ijse.gdse73.harmoniq_backend.dto.ArtistDTO;
-import com.ijse.gdse73.harmoniq_backend.dto.MusicDTO;
 import com.ijse.gdse73.harmoniq_backend.entity.Artist;
 import com.ijse.gdse73.harmoniq_backend.exception.CustomException;
-import com.ijse.gdse73.harmoniq_backend.repo.ArtistRepo;
 import com.ijse.gdse73.harmoniq_backend.service.ArtistService;
+import com.ijse.gdse73.harmoniq_backend.service.cloudinary.CloudinaryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URI;
 
 @RestController
 @RequestMapping("api/v1/artist")
 @CrossOrigin
 @RequiredArgsConstructor
 public class ArtistController {
+
     private final ArtistService artistService;
-    private final String artistDir = System.getProperty("user.dir") + "/uploads/artistProfile/";
-    private final ArtistRepo artistRepo;
+    private final CloudinaryService cloudinaryService;
 
     @PostMapping("/add")
     @PreAuthorize("hasRole('ADMIN')")
@@ -38,25 +31,18 @@ public class ArtistController {
                                                  @RequestParam("bio") String bio,
                                                  @RequestParam("profilePic") MultipartFile profilePic) throws IOException {
 
-        String artistName = profilePic.getOriginalFilename();
-        File artistProfileDirectory = new File(artistDir);
+        // 1. Upload profile image to Cloudinary
+        String pfpUrl = cloudinaryService.uploadImage(profilePic);
 
-        if (!artistProfileDirectory.exists()) {
-            artistProfileDirectory.mkdirs();
-        }
-        Path artistProfilePath = Paths.get(artistDir + artistName);
-        Files.write(artistProfilePath, profilePic.getBytes());
-
+        // 2. Prepare DTO with Cloudinary CDN URL
         ArtistDTO artistDTO = new ArtistDTO();
         artistDTO.setName(name);
         artistDTO.setBio(bio);
-        artistDTO.setPfpPath("/uploads/artistProfile/" + artistName);
+        artistDTO.setPfpPath(pfpUrl);
 
         artistService.addArtist(artistDTO);
 
-        return ResponseEntity.ok(new APIResponse(
-                200,"OK",null
-        ));
+        return ResponseEntity.ok(new APIResponse(200, "OK", null));
     }
 
     @DeleteMapping("/delete/{id}")
@@ -64,15 +50,10 @@ public class ArtistController {
     public ResponseEntity<APIResponse> deleteArtist(@PathVariable Long id) {
         Artist artist = artistService.deleteArtist(id);
 
-        String artistProfileName = new File(artist.getPfpPath()).getName();
-        File artistProfile = new File(artistDir + artistProfileName);
-        if (artistProfile.exists()) {
-            artistProfile.delete();
-        }
+        // Remove profile image asset from Cloudinary
+        cloudinaryService.deleteFileByUrl(artist.getPfpPath(), "image");
 
-        return ResponseEntity.ok(new APIResponse(
-                 200,"OK",null
-        ));
+        return ResponseEntity.ok(new APIResponse(200, "OK", null));
     }
 
     @PutMapping("/update/{id}")
@@ -90,32 +71,26 @@ public class ArtistController {
         updatedDTO.setBio(bio);
         updatedDTO.setPfpPath(existingDTO.getPfpPath());
 
+        // Update profile picture if provided
         if (profilePic != null && !profilePic.isEmpty()) {
-            String oldArtistProfileName = new File(existingDTO.getPfpPath()).getName();
-            String newArtistProfileName = profilePic.getOriginalFilename();
-            updatedDTO.setPfpPath("/uploads/artistProfile/" + newArtistProfileName);
+            // Delete old picture from Cloudinary
+            cloudinaryService.deleteFileByUrl(existingDTO.getPfpPath(), "image");
 
-            if (!updatedDTO.getPfpPath().equals(existingDTO.getPfpPath())) {
-                if (artistRepo.findByPfpPath(updatedDTO.getPfpPath()) != null) {
-                    throw new CustomException("Artist profile pic already exists");
-                }
-            }
-
-            Files.deleteIfExists(Paths.get(artistDir + oldArtistProfileName));
-            Files.write(Paths.get(artistDir + newArtistProfileName), profilePic.getBytes());
+            // Upload new picture
+            String newPfpUrl = cloudinaryService.uploadImage(profilePic);
+            updatedDTO.setPfpPath(newPfpUrl);
         }
 
         artistService.updateArtist(updatedDTO);
-        return ResponseEntity.ok(new APIResponse(
-                 200,"OK",null
-        ));
+
+        return ResponseEntity.ok(new APIResponse(200, "OK", null));
     }
 
     @GetMapping("/find/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<APIResponse> findArtist(@PathVariable Long id) {
         return ResponseEntity.ok(new APIResponse(
-                 200,"OK",artistService.findArtist(id)
+                200, "OK", artistService.findArtist(id)
         ));
     }
 
@@ -123,46 +98,25 @@ public class ArtistController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<APIResponse> getAllArtists() {
         return ResponseEntity.ok(new APIResponse(
-                200,"OK",artistService.getAllArtists()
+                200, "OK", artistService.getAllArtists()
         ));
     }
 
+    /**
+     * Preserved Route: Profile Picture Access
+     * Automatically redirects HTTP requests to the Cloudinary CDN URL.
+     */
     @GetMapping("/profile-pic/{id}")
-//    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<Resource> getProfilePic(@PathVariable Long id) {
+    public ResponseEntity<Void> getProfilePic(@PathVariable Long id) {
+        ArtistDTO artistDTO = artistService.findArtist(id);
 
-        try {
-            //  Get music metadata
-            ArtistDTO artistDTO = artistService.findArtist(id);
-
-            if (artistDTO == null || artistDTO.getPfpPath() == null) {
-                throw new CustomException("Profile Picture not found");
-            }
-
-            //  Resolve thumbnail file path
-            String artistProfileName = new File(artistDTO.getPfpPath()).getName();
-            Path artistProfilePath = Paths.get(artistDir + artistProfileName);
-
-            Resource resource = new UrlResource(artistProfilePath.toUri());
-
-            if (!resource.exists()) {
-                throw new CustomException("Profile Picture not found");
-            }
-
-            //  Return as image resource
-            String contentType = Files.probeContentType(artistProfilePath);
-            if (contentType == null) {
-                contentType = "image/jpeg"; // default
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                    .body(resource);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+        if (artistDTO == null || artistDTO.getPfpPath() == null) {
+            throw new CustomException("Profile Picture not found");
         }
+
+        // HTTP 302 Redirect directly to Cloudinary URL
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(artistDTO.getPfpPath()))
+                .build();
     }
 }

@@ -4,115 +4,96 @@ import com.ijse.gdse73.harmoniq_backend.dto.APIResponse;
 import com.ijse.gdse73.harmoniq_backend.dto.MusicDTO;
 import com.ijse.gdse73.harmoniq_backend.entity.Music;
 import com.ijse.gdse73.harmoniq_backend.exception.CustomException;
-import com.ijse.gdse73.harmoniq_backend.repo.MusicRepo;
+import com.ijse.gdse73.harmoniq_backend.service.cloudinary.CloudinaryService;
 import com.ijse.gdse73.harmoniq_backend.service.MusicService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.web.util.UriUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/music")
 @CrossOrigin
 @RequiredArgsConstructor
 public class MusicController {
+
     private final MusicService musicService;
-    private final String musicDir = System.getProperty("user.dir") + "/uploads/music/";
-    private final String thumbnailDir = System.getProperty("user.dir") + "/uploads/thumbnail/";
-    private final MusicRepo musicRepo;
+    private final CloudinaryService cloudinaryService;
 
     @PostMapping("/upload")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<APIResponse> uploadMusic(@RequestParam("musicFile") MultipartFile musicFile,
-                                                   @RequestParam("thumbnail") MultipartFile thumbnail,
-                                                   @RequestParam("musicTitle") String musicTitle,
-                                                   @RequestParam("musicArtist") String musicArtist,
-                                                   @RequestParam("genreId") Long musicGenreId) throws IOException {
+    public ResponseEntity<APIResponse> uploadMusic(
+            @RequestParam("musicFile") MultipartFile musicFile,
+            @RequestParam("thumbnail") MultipartFile thumbnail,
+            @RequestParam("musicTitle") String musicTitle,
+            @RequestParam("musicArtist") String musicArtist,
+            @RequestParam("genreId") Long musicGenreId) throws IOException {
 
-//        Music File
-        String musicName = musicFile.getOriginalFilename();
-        File musicDirectory = new File(musicDir);
+        // Upload files to Cloudinary
+        String musicUrl = cloudinaryService.uploadAudio(musicFile);
+        String thumbnailUrl = cloudinaryService.uploadImage(thumbnail);
 
-        if (!musicDirectory.exists()) {
-            musicDirectory.mkdirs();
-        }
-        Path musicPath = Paths.get(musicDir + musicName);
-        Files.write(musicPath, musicFile.getBytes());
-
-//        Thumbnail File
-        String thumbnailName = thumbnail.getOriginalFilename();
-        File thumbnailDirectory = new File(thumbnailDir);
-
-        if (!thumbnailDirectory.exists()) {
-            thumbnailDirectory.mkdirs();
-        }
-        Path thumbnailPath = Paths.get(thumbnailDir + thumbnailName);
-        Files.write(thumbnailPath, thumbnail.getBytes());
-
-//        Save to DTO
+        // Save DTO with Cloudinary CDN URLs
         MusicDTO musicDTO = new MusicDTO();
-        musicDTO.setFileName(musicName);
-        musicDTO.setMusicPath("/uploads/music/" + musicName);
-        musicDTO.setThumbnailPath("/uploads/thumbnail/" + thumbnailName);
+        musicDTO.setFileName(musicFile.getOriginalFilename());
+        musicDTO.setMusicPath(musicUrl);
+        musicDTO.setThumbnailPath(thumbnailUrl);
         musicDTO.setMusicTitle(musicTitle);
         musicDTO.setMusicArtist(musicArtist);
         musicDTO.setMusicGenreId(musicGenreId);
 
         musicService.saveMusic(musicDTO);
 
-        return ResponseEntity.ok(new APIResponse(
-                200,"OK",null
-        ));
+        return ResponseEntity.ok(new APIResponse(200, "OK", null));
     }
 
+    /**
+     * Preserved Route: Audio Streaming
+     * Redirects the client automatically to Cloudinary CDN URL.
+     */
     @GetMapping("/stream/{id}")
-//    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Resource> streamMusic(@PathVariable Long id) {
+    public ResponseEntity<Void> streamMusic(@PathVariable Long id) {
+        MusicDTO musicDTO = musicService.getMusicById(id);
 
-        try {
-            MusicDTO musicDTO = musicService.getMusicById(id);
-
-            Path filePath = Paths.get(musicDir + musicDTO.getFileName());
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (!resource.exists()) {
-                throw new CustomException("File not found");
-            }
-
-            String fileName = musicDTO.getFileName();
-            String encodedFileName = UriUtils.encode(fileName, StandardCharsets.UTF_8);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType("audio/mp4"))
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename*=UTF-8''" + encodedFileName) // Use filename* for UTF-8
-                    .body(resource);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+        if (musicDTO == null || musicDTO.getMusicPath() == null) {
+            throw new CustomException("Music file not found");
         }
+
+        // HTTP 302 Redirect to Cloudinary URL (Audio tags follow this seamlessly)
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(musicDTO.getMusicPath()))
+                .build();
+    }
+
+    /**
+     * Preserved Route: Thumbnail Display
+     * Redirects the client automatically to Cloudinary CDN URL.
+     */
+    @GetMapping("/thumbnail/{id}")
+    public ResponseEntity<Void> getThumbnail(@PathVariable Long id) {
+        MusicDTO musicDTO = musicService.getMusicById(id);
+
+        if (musicDTO == null || musicDTO.getThumbnailPath() == null) {
+            throw new CustomException("Thumbnail not found");
+        }
+
+        // HTTP 302 Redirect to Cloudinary URL (Img tags follow this seamlessly)
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(musicDTO.getThumbnailPath()))
+                .build();
     }
 
     @GetMapping("/get-all")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<APIResponse> getAllMusic() {
         return ResponseEntity.ok(new APIResponse(
-                200,"OK",musicService.getAllMusic()
+                200, "OK", musicService.getAllMusic()
         ));
     }
 
@@ -122,25 +103,11 @@ public class MusicController {
     public ResponseEntity<APIResponse> deleteMusic(@PathVariable Long id) {
         Music music = musicService.deleteMusic(id);
 
-        // Delete music file
-        File musicFile = new File(musicDir + music.getFileName());
-        if (musicFile.exists()) {
-            musicFile.delete();
-        }
+        // Delete media files from Cloudinary
+        cloudinaryService.deleteFileByUrl(music.getMusicPath(), "video");
+        cloudinaryService.deleteFileByUrl(music.getThumbnailPath(), "image");
 
-        // Delete thumbnail file
-        String thumbnailName = new File(music.getThumbnailPath()).getName();
-        File thumbnailFile = new File(thumbnailDir + thumbnailName);
-        if (thumbnailFile.exists()) {
-            boolean isThumbnailDuplicated = musicRepo.findByThumbnailPath(music.getThumbnailPath()) != null;
-            if (!isThumbnailDuplicated) {
-                thumbnailFile.delete();
-            }
-        }
-
-        return ResponseEntity.ok(new APIResponse(
-                200,"OK",null
-        ));
+        return ResponseEntity.ok(new APIResponse(200, "OK", null));
     }
 
     @PutMapping("/update/{id}")
@@ -154,10 +121,8 @@ public class MusicController {
             @RequestParam("musicArtist") String musicArtist,
             @RequestParam("genreId") Long musicGenreId) throws IOException {
 
-        // 1. Fetch existing music metadata
         MusicDTO existingMusic = musicService.getMusicById(id);
 
-        // 2. Prepare new DTO with existing data as default
         MusicDTO updatedDTO = new MusicDTO();
         updatedDTO.setId(id);
         updatedDTO.setMusicTitle(musicTitle);
@@ -167,92 +132,23 @@ public class MusicController {
         updatedDTO.setMusicPath(existingMusic.getMusicPath());
         updatedDTO.setThumbnailPath(existingMusic.getThumbnailPath());
 
-        // 3. Handle Music File Update
+        // Update audio file if provided
         if (musicFile != null && !musicFile.isEmpty()) {
-            String newMusicName = musicFile.getOriginalFilename();
-            updatedDTO.setMusicPath("/uploads/music/" + newMusicName);
-            updatedDTO.setFileName(newMusicName);
-
-            if (!updatedDTO.getMusicPath().equals(existingMusic.getMusicPath())) {
-                if (musicRepo.findByMusicPath(updatedDTO.getMusicPath()) != null) {
-                    throw new CustomException("Song already exists");
-                }
-            }
-
-            // Delete old file
-            Files.deleteIfExists(Paths.get(musicDir + existingMusic.getFileName()));
-
-            // Save new file
-            Files.write(Paths.get(musicDir + newMusicName), musicFile.getBytes());
+            cloudinaryService.deleteFileByUrl(existingMusic.getMusicPath(), "video");
+            String newMusicUrl = cloudinaryService.uploadAudio(musicFile);
+            updatedDTO.setMusicPath(newMusicUrl);
+            updatedDTO.setFileName(musicFile.getOriginalFilename());
         }
 
-        // 4. Handle Thumbnail File Update
+        // Update thumbnail file if provided
         if (thumbnail != null && !thumbnail.isEmpty()) {
-            String newThumbnailName = thumbnail.getOriginalFilename();
-            String oldThumbnailName = new File(existingMusic.getThumbnailPath()).getName();
-            updatedDTO.setThumbnailPath("/uploads/thumbnail/" + newThumbnailName);
-
-            if (!updatedDTO.getThumbnailPath().equals(existingMusic.getThumbnailPath())) {
-                if (musicRepo.findByThumbnailPath(updatedDTO.getThumbnailPath()) != null) {
-                    throw new CustomException("Thumbnail already exists");
-                }
-            }
-
-            // Delete old thumbnail
-            Files.deleteIfExists(Paths.get(thumbnailDir + oldThumbnailName));
-
-            // Save new thumbnail
-            Files.write(Paths.get(thumbnailDir + newThumbnailName), thumbnail.getBytes());
+            cloudinaryService.deleteFileByUrl(existingMusic.getThumbnailPath(), "image");
+            String newThumbnailUrl = cloudinaryService.uploadImage(thumbnail);
+            updatedDTO.setThumbnailPath(newThumbnailUrl);
         }
 
-        // 5. Update Database Record
         musicService.updateMusic(updatedDTO);
 
-        return ResponseEntity.ok(new APIResponse(
-                200, "Music updated successfully", null
-        ));
-    }
-
-    @GetMapping("/thumbnail/{id}")
-    public ResponseEntity<Resource> getThumbnail(@PathVariable Long id) {
-
-        try {
-            // 1. Get music metadata
-            MusicDTO musicDTO = musicService.getMusicById(id);
-
-            if (musicDTO == null || musicDTO.getThumbnailPath() == null) {
-                throw new CustomException("Thumbnail not found");
-            }
-
-            // 2. Resolve thumbnail file path
-            String thumbnailName = new File(musicDTO.getThumbnailPath()).getName();
-            Path thumbnailPath = Paths.get(thumbnailDir + thumbnailName);
-
-            Resource resource = new UrlResource(thumbnailPath.toUri());
-
-            if (!resource.exists()) {
-                throw new CustomException("Thumbnail file not found");
-            }
-
-            // 3. Return as image resource
-            String contentType = Files.probeContentType(thumbnailPath);
-            if (contentType == null) {
-                contentType = "image/jpeg"; // default
-            }
-
-            // ... inside getThumbnail
-            String fileName = resource.getFilename();
-            String encodedFileName = UriUtils.encode(fileName != null ? fileName : "thumbnail", StandardCharsets.UTF_8);
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename*=UTF-8''" + encodedFileName)
-                    .body(resource);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(new APIResponse(200, "Music updated successfully", null));
     }
 }
